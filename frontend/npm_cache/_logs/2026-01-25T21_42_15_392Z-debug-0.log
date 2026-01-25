@@ -1,0 +1,38 @@
+0 verbose cli /opt/homebrew/Cellar/node/22.9.0/bin/node /opt/homebrew/bin/npm
+1 info using npm@10.8.3
+2 info using node@v22.9.0
+3 silly config load:file:/opt/homebrew/lib/node_modules/npm/npmrc
+4 silly config load:file:/Users/suhasbacchu/Documents/Projects/approval-project-2/frontend/.npmrc
+5 silly config load:file:/Users/suhasbacchu/.npmrc
+6 silly config load:file:/opt/homebrew/etc/npmrc
+7 verbose title npm install react
+8 verbose argv "install" "react"
+9 verbose logfile logs-max:10 dir:/Users/suhasbacchu/Documents/Projects/approval-project-2/frontend/npm_cache/_logs/2026-01-25T21_42_15_392Z-
+10 verbose logfile /Users/suhasbacchu/Documents/Projects/approval-project-2/frontend/npm_cache/_logs/2026-01-25T21_42_15_392Z-debug-0.log
+11 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+12 silly logfile done cleaning log files
+13 silly idealTree buildDeps
+14 silly fetch manifest react@*
+15 silly packumentCache full:https://registry.npmjs.org/react cache-miss
+16 http fetch GET 200 https://registry.npmjs.org/npm 194ms
+17 http fetch GET 200 https://registry.npmjs.org/react 202ms (cache miss)
+18 silly packumentCache full:https://registry.npmjs.org/react set size:undefined disposed:false
+19 silly placeDep ROOT react@19.2.3 OK for: test@1.0.0 want: *
+20 silly reify moves {}
+21 silly audit bulk request { react: [ '19.2.3' ] }
+22 silly tarball no local data for react@https://registry.npmjs.org/react/-/react-19.2.3.tgz. Extracting by manifest.
+23 http fetch GET 200 https://registry.npmjs.org/react/-/react-19.2.3.tgz 75ms (cache miss)
+24 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 130ms
+25 silly audit report {}
+26 silly ADD node_modules/react
+27 verbose cwd /Users/suhasbacchu/Documents/Projects/approval-project-2/frontend
+28 verbose os Darwin 25.1.0
+29 verbose node v22.9.0
+30 verbose npm  v10.8.3
+31 notice
+31 notice New major version of npm available! 10.8.3 -> 11.8.0
+31 notice Changelog: https://github.com/npm/cli/releases/tag/v11.8.0
+31 notice To update run: npm install -g npm@11.8.0
+31 notice  { force: true, [Symbol(proc-log.meta)]: true }
+32 verbose exit 0
+33 info ok
