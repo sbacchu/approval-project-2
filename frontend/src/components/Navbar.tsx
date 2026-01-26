@@ -23,10 +23,10 @@ export default function Navbar() {
 
                     <div className="hidden md:flex items-center gap-6">
                         <Link
-                            to="/"
+                            to="/imports"
                             className={cn(
                                 "text-sm font-medium transition-colors hover:text-primary flex items-center gap-2",
-                                isActive('/') && !isActive('/housing') ? "text-primary" : "text-muted-foreground"
+                                isActive('/imports') ? "text-primary" : "text-muted-foreground"
                             )}
                         >
                             <Home className="h-4 w-4" />

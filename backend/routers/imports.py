@@ -205,3 +205,31 @@ async def download_csv(
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+@router.get("/stats/summary")
+async def get_stats(
+    current_user: str = Depends(get_current_user),
+    session: Session = Depends(get_session)
+):
+    # Total Imports
+    total_imports = session.exec(select(func.count()).select_from(Import)).one()
+    
+    # Imports by status
+    pending_imports = session.exec(select(func.count()).where(Import.status == ImportStatus.PENDING)).one()
+    approved_imports = session.exec(select(func.count()).where(Import.status == ImportStatus.APPROVED)).one()
+    rejected_imports = session.exec(select(func.count()).where(Import.status == ImportStatus.REJECTED)).one()
+    
+    # Total Data Points
+    total_observations = session.exec(select(func.count()).select_from(EconObservation)).one()
+    
+    return {
+        "imports": {
+            "total": total_imports,
+            "pending": pending_imports,
+            "approved": approved_imports,
+            "rejected": rejected_imports
+        },
+        "observations": {
+            "total": total_observations
+        }
+    }
