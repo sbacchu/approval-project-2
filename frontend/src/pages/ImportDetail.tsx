@@ -45,7 +45,7 @@ export default function ImportDetail() {
 
     const approveMutation = useMutation({
         mutationFn: async () => {
-            return api.post(`/imports/${id}/approve`);
+            return api.post(`/imports/${id}/approve/`);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['import', id] });

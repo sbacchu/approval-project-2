@@ -19,7 +19,7 @@ export default function Home() {
     const { data: stats, isLoading } = useQuery<Stats>({
         queryKey: ['stats'],
         queryFn: async () => {
-            const res = await api.get('/imports/stats/summary');
+            const res = await api.get('/imports/stats/summary/');
             return res.data;
         }
     });

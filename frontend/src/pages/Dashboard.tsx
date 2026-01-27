@@ -27,7 +27,7 @@ export default function Dashboard() {
         queryKey: ['imports', filterStatus],
         queryFn: async () => {
             const params = filterStatus ? { status: filterStatus } : {};
-            const res = await api.get<Import[]>('/imports', { params });
+            const res = await api.get<Import[]>('/imports/', { params });
             return res.data;
         }
     });
@@ -36,7 +36,7 @@ export default function Dashboard() {
         mutationFn: async (file: File) => {
             const formData = new FormData();
             formData.append('file', file);
-            return api.post('/imports', formData);
+            return api.post('/imports/', formData);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['imports'] });
