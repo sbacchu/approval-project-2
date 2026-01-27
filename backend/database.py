@@ -1,7 +1,9 @@
+import os
 from sqlmodel import SQLModel, create_engine, Session
-from .models import Import, EconObservation # Import models to register them
+from .models import Import, EconObservation, User # Import models to register them
 
-sqlite_file_name = "database.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sqlite_file_name = os.path.join(BASE_DIR, "database.db")
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 connect_args = {"check_same_thread": False}

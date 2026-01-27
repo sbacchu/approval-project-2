@@ -11,6 +11,18 @@ class ImportStatus(str, Enum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
 
+class UserRole(str, Enum):
+    UPLOADER = "UPLOADER"
+    APPROVER = "APPROVER"
+    ADMIN = "ADMIN"
+
+class User(SQLModel, table=True):
+    __tablename__ = "users"
+    
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    username: str = Field(index=True, unique=True)
+    role: UserRole
+
 class Import(SQLModel, table=True):
     __tablename__ = "imports"
 

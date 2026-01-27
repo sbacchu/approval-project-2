@@ -8,7 +8,7 @@ import csv
 import uuid
 
 from ..database import get_session
-from ..models import Import, EconObservation, ImportStatus
+from ..models import Import, EconObservation, ImportStatus, User, UserRole
 from ..dependencies import get_current_user
 from ..services.parser import parse_excel
 
@@ -17,10 +17,10 @@ router = APIRouter(prefix="/imports", tags=["imports"])
 @router.post("/", response_model=Import)
 async def upload_import(
     file: UploadFile = File(...),
-    current_user: str = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
-    if current_user not in ["alice", "admin"]:
+    if current_user.role not in [UserRole.UPLOADER, UserRole.ADMIN]:
         raise HTTPException(status_code=403, detail="Not authorized to upload")
     
     if not file.filename.endswith((".xlsx", ".xls")):
@@ -36,7 +36,7 @@ async def upload_import(
     # Create Import
     import_obj = Import(
         original_filename=file.filename,
-        uploaded_by=current_user,
+        uploaded_by=current_user.username,
         row_count=row_count,
         columns=columns,
         parse_warnings=warnings,
@@ -58,14 +58,14 @@ async def upload_import(
 @router.get("/", response_model=List[Import])
 async def list_imports(
     status: Optional[ImportStatus] = None,
-    current_user: str = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     query = select(Import)
     
-    if current_user == "alice":
-        # Alice only sees her uploads
-        query = query.where(Import.uploaded_by == "alice")
+    if current_user.role == UserRole.UPLOADER:
+        # Uploaders only see their uploads
+        query = query.where(Import.uploaded_by == current_user.username)
     
     if status:
         query = query.where(Import.status == status)
@@ -77,14 +77,14 @@ async def list_imports(
 @router.get("/{import_id}", response_model=Import)
 async def get_import(
     import_id: uuid.UUID,
-    current_user: str = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     imp = session.get(Import, import_id)
     if not imp:
         raise HTTPException(status_code=404, detail="Import not found")
         
-    if current_user == "alice" and imp.uploaded_by != "alice":
+    if current_user.role == UserRole.UPLOADER and imp.uploaded_by != current_user.username:
         raise HTTPException(status_code=403, detail="Not authorized")
         
     return imp
@@ -97,14 +97,14 @@ async def get_import_rows(
     series: Optional[str] = None,
     date_from: Optional[str] = None,
     date_to: Optional[str] = None,
-    current_user: str = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     # Check permissions
     imp = session.get(Import, import_id)
     if not imp:
         raise HTTPException(status_code=404, detail="Import not found")
-    if current_user == "alice" and imp.uploaded_by != "alice":
+    if current_user.role == UserRole.UPLOADER and imp.uploaded_by != current_user.username:
         raise HTTPException(status_code=403, detail="Not authorized")
 
     query = select(EconObservation).where(EconObservation.import_id == import_id)
@@ -136,10 +136,10 @@ async def get_import_rows(
 @router.post("/{import_id}/approve", response_model=Import)
 async def approve_import(
     import_id: uuid.UUID,
-    current_user: str = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
-    if current_user not in ["bob", "admin"]:
+    if current_user.role not in [UserRole.APPROVER, UserRole.ADMIN]:
          raise HTTPException(status_code=403, detail="Not authorized to approve")
          
     imp = session.get(Import, import_id)
@@ -147,7 +147,7 @@ async def approve_import(
         raise HTTPException(status_code=404, detail="Import not found")
         
     imp.status = ImportStatus.APPROVED
-    imp.approved_by = current_user
+    imp.approved_by = current_user.username
     imp.approved_at = datetime.utcnow()
     
     session.add(imp)
@@ -158,14 +158,14 @@ async def approve_import(
 @router.get("/{import_id}/download/csv")
 async def download_csv(
     import_id: uuid.UUID,
-    current_user: str = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     imp = session.get(Import, import_id)
     if not imp:
         raise HTTPException(status_code=404, detail="Import not found")
 
-    if current_user == "alice" and imp.uploaded_by != "alice":
+    if current_user.role == UserRole.UPLOADER and imp.uploaded_by != current_user.username:
         raise HTTPException(status_code=403, detail="Not authorized")
 
     # Generator for CSV
@@ -208,7 +208,7 @@ async def download_csv(
 
 @router.get("/stats/summary")
 async def get_stats(
-    current_user: str = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     # Total Imports
