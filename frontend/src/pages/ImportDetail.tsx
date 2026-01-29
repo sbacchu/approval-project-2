@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 interface ImportDetailData {
     id: string;
     original_filename: string;
+    display_name?: string;
     uploaded_by: string;
     uploaded_at: string;
     status: string;
@@ -190,7 +191,10 @@ export default function ImportDetail() {
 
             <div className="flex justify-between items-start border-b pb-6">
                 <div>
-                    <h1 className="text-2xl font-bold mb-2">{importData.original_filename}</h1>
+                    <h1 className="text-2xl font-bold mb-2">{importData.display_name || importData.original_filename}</h1>
+                    {importData.display_name && importData.display_name !== importData.original_filename && (
+                        <p className="text-sm text-muted-foreground mb-2 font-mono">{importData.original_filename}</p>
+                    )}
                     <div className="flex gap-4 text-sm text-muted-foreground">
                         <span>Uploaded by: <span className="font-medium text-foreground">{importData.uploaded_by}</span></span>
                         <span>Date: <span className="font-medium text-foreground">{new Date(importData.uploaded_at).toLocaleString()}</span></span>

@@ -29,6 +29,7 @@ class Import(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     original_filename: str
     uploaded_by: str
+    display_name: Optional[str] = None
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
     status: ImportStatus = Field(default=ImportStatus.PENDING)
     approved_by: Optional[str] = None

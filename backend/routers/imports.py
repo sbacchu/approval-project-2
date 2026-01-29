@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Query, status
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select, func
 from typing import List, Optional
@@ -17,6 +17,7 @@ router = APIRouter(prefix="/imports", tags=["imports"])
 @router.post("/", response_model=Import)
 async def upload_import(
     file: UploadFile = File(...),
+    display_name: Optional[str] = Form(None),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
@@ -36,6 +37,7 @@ async def upload_import(
     # Create Import
     import_obj = Import(
         original_filename=file.filename,
+        display_name=display_name,
         uploaded_by=current_user.username,
         row_count=row_count,
         columns=columns,

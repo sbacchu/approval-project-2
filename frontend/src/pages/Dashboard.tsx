@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../lib/api';
 import { cn } from '../lib/utils';
 import { Loader2 } from 'lucide-react';
+import { ImportUploadModal } from '@/components/ImportUploadModal';
+
+import { Upload } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Import {
     id: string;
@@ -14,14 +20,14 @@ interface Import {
     row_count: number;
     approved_by?: string;
     approved_at?: string;
+    display_name?: string;
 }
 
 export default function Dashboard() {
     const queryClient = useQueryClient();
     const [filterStatus, setFilterStatus] = useState<string>('');
-    const [uploadFile, setUploadFile] = useState<File | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const [uploadError, setUploadError] = useState<string | null>(null);
+    const [displayName, setDisplayName] = useState('');
+
 
     const { data: imports, isLoading } = useQuery({
         queryKey: ['imports', filterStatus],
@@ -32,30 +38,7 @@ export default function Dashboard() {
         }
     });
 
-    const uploadMutation = useMutation({
-        mutationFn: async (file: File) => {
-            const formData = new FormData();
-            formData.append('file', file);
-            return api.post('/imports/', formData);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['imports'] });
-            setUploadFile(null);
-            setUploadError(null);
-            setIsUploading(false);
-        },
-        onError: (error: any) => {
-            setUploadError(error.response?.data?.detail || 'Upload failed');
-            setIsUploading(false);
-        }
-    });
 
-    const handleUpload = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!uploadFile) return;
-        setIsUploading(true);
-        uploadMutation.mutate(uploadFile);
-    };
 
     const user = localStorage.getItem('dev_user') || 'alice';
     const canUpload = ['alice', 'admin'].includes(user);
@@ -65,48 +48,44 @@ export default function Dashboard() {
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold">Imports Dashboard</h2>
                 {canUpload && (
-                    <div className="flex gap-2">
-                        <label className="cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md font-medium text-sm transition-colors">
-                            Upload Excel
-                            <input
-                                type="file"
-                                className="hidden"
-                                accept=".xlsx, .xls"
-                                onChange={(e) => {
-                                    if (e.target.files?.[0]) {
-                                        setUploadFile(e.target.files[0]);
-                                    }
-                                }}
+                    <ImportUploadModal
+                        trigger={
+                            <Button className="gap-2">
+                                <Upload className="h-4 w-4" />
+                                Upload Excel
+                            </Button>
+                        }
+                        onUpload={async (file) => {
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            if (displayName) {
+                                formData.append('display_name', displayName);
+                            }
+                            await api.post('/imports/', formData);
+                            queryClient.invalidateQueries({ queryKey: ['imports'] });
+                            setDisplayName(''); // Reset after successful upload
+                        }}
+                        onFileSelect={(file) => {
+                            if (!displayName) {
+                                setDisplayName(file.name.split('.')[0]);
+                            }
+                        }}
+                    >
+                        <div className="grid gap-2">
+                            <Label htmlFor="displayName">Display Name</Label>
+                            <Input
+                                id="displayName"
+                                value={displayName}
+                                onChange={(e) => setDisplayName(e.target.value)}
+                                placeholder="e.g. Q1 2024 Economic Data"
                             />
-                        </label>
-                    </div>
+                        </div>
+                    </ImportUploadModal>
                 )}
             </div>
 
             {/* Upload Preview */}
-            {uploadFile && (
-                <div className="border border-border rounded-lg p-4 bg-muted/30 animate-in fade-in slide-in-from-top-2">
-                    <h3 className="font-medium mb-2">Confirm Upload</h3>
-                    <p className="text-sm mb-4">Selected file: <span className="font-mono bg-muted px-1 rounded">{uploadFile.name}</span></p>
-                    {uploadError && <p className="text-destructive text-sm mb-4 bg-destructive/10 p-2 rounded">{uploadError}</p>}
-                    <div className="flex gap-2">
-                        <button
-                            onClick={handleUpload}
-                            disabled={isUploading}
-                            className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm disabled:opacity-50 flex items-center gap-2 hover:bg-primary/90 transition-colors"
-                        >
-                            {isUploading && <Loader2 className="animate-spin h-4 w-4" />}
-                            {isUploading ? 'Uploading...' : 'Start Upload'}
-                        </button>
-                        <button
-                            onClick={() => { setUploadFile(null); setUploadError(null); }}
-                            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md text-sm hover:bg-secondary/80 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            )}
+
 
             <div className="flex gap-2 items-center">
                 <span className="text-sm text-muted-foreground">Filter Status:</span>
@@ -144,8 +123,11 @@ export default function Dashboard() {
                                 <tr key={imp.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                                     <td className="p-4">
                                         <Link to={`/imports/${imp.id}`} className="font-medium text-primary hover:underline decoration-primary/50 underline-offset-4">
-                                            {imp.original_filename}
+                                            {imp.display_name || imp.original_filename}
                                         </Link>
+                                        {imp.display_name && imp.display_name !== imp.original_filename && (
+                                            <div className="text-xs text-muted-foreground mt-0.5">{imp.original_filename}</div>
+                                        )}
                                     </td>
                                     <td className="p-4">
                                         <span className={cn(
