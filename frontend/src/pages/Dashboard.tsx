@@ -10,6 +10,14 @@ import { Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 
 interface Import {
     id: string;
@@ -102,34 +110,47 @@ export default function Dashboard() {
             </div>
 
             <div className="border rounded-md overflow-hidden">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-muted text-muted-foreground border-b">
-                        <tr>
-                            <th className="h-10 px-4 font-medium">Filename</th>
-                            <th className="h-10 px-4 font-medium">Status</th>
-                            <th className="h-10 px-4 font-medium">Uploaded By</th>
-                            <th className="h-10 px-4 font-medium">Uploaded At</th>
-                            <th className="h-10 px-4 font-medium">Rows</th>
-                            <th className="h-10 px-4 font-medium">Approved By</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Filename</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Uploaded By</TableHead>
+                            <TableHead>Uploaded At</TableHead>
+                            <TableHead>Rows</TableHead>
+                            <TableHead>Approved By</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {isLoading ? (
-                            <tr><td colSpan={6} className="p-8 text-center text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />Loading imports...</td></tr>
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-24 text-center">
+                                    <div className="flex items-center justify-center gap-2">
+                                        <Loader2 className="h-6 w-6 animate-spin" />
+                                        <span>Loading imports...</span>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
                         ) : imports?.length === 0 ? (
-                            <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No imports found</td></tr>
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-24 text-center">
+                                    No imports found
+                                </TableCell>
+                            </TableRow>
                         ) : (
                             imports?.map(imp => (
-                                <tr key={imp.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
-                                    <td className="p-4">
-                                        <Link to={`/imports/${imp.id}`} className="font-medium text-primary hover:underline decoration-primary/50 underline-offset-4">
-                                            {imp.display_name || imp.original_filename}
-                                        </Link>
-                                        {imp.display_name && imp.display_name !== imp.original_filename && (
-                                            <div className="text-xs text-muted-foreground mt-0.5">{imp.original_filename}</div>
-                                        )}
-                                    </td>
-                                    <td className="p-4">
+                                <TableRow key={imp.id}>
+                                    <TableCell className="font-medium">
+                                        <div className="flex flex-col">
+                                            <Link to={`/imports/${imp.id}`} className="text-primary hover:underline decoration-primary/50 underline-offset-4">
+                                                {imp.display_name || imp.original_filename}
+                                            </Link>
+                                            {imp.display_name && imp.display_name !== imp.original_filename && (
+                                                <span className="text-xs text-muted-foreground mt-0.5">{imp.original_filename}</span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
                                         <span className={cn(
                                             "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset",
                                             imp.status === 'PENDING' ? "bg-yellow-50 text-yellow-800 ring-yellow-600/20 dark:bg-yellow-900/30 dark:text-yellow-400 dark:ring-yellow-400/20" :
@@ -138,23 +159,23 @@ export default function Dashboard() {
                                         )}>
                                             {imp.status}
                                         </span>
-                                    </td>
-                                    <td className="p-4">{imp.uploaded_by}</td>
-                                    <td className="p-4 text-muted-foreground">{new Date(imp.uploaded_at).toLocaleString()}</td>
-                                    <td className="p-4 font-mono">{imp.row_count}</td>
-                                    <td className="p-4">
+                                    </TableCell>
+                                    <TableCell>{imp.uploaded_by}</TableCell>
+                                    <TableCell className="text-muted-foreground">{new Date(imp.uploaded_at).toLocaleString()}</TableCell>
+                                    <TableCell className="font-mono">{imp.row_count}</TableCell>
+                                    <TableCell>
                                         {imp.approved_by ? (
                                             <div className="flex flex-col">
                                                 <span>{imp.approved_by}</span>
                                                 <span className="text-xs text-muted-foreground">{imp.approved_at && new Date(imp.approved_at).toLocaleDateString()}</span>
                                             </div>
                                         ) : '-'}
-                                    </td>
-                                </tr>
+                                    </TableCell>
+                                </TableRow>
                             ))
                         )}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
         </div>
     );
